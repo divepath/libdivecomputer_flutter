@@ -42,7 +42,7 @@ android {
     sourceSets {
         main {
             // Bundle so files with the final apk.
-            jniLibs.srcDirs = ['../native/lib/android']
+            jniLibs.srcDirs = ['libraries']
         }
     }
 
@@ -53,12 +53,6 @@ android {
 
     defaultConfig {
         minSdkVersion 19
-    }
-
-    externalNativeBuild {
-        cmake {
-            path "CMakeLists.txt"
-        }
     }
 }
 
