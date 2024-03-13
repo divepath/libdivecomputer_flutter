@@ -38,7 +38,7 @@ class DiveComputerFfi {
     const String libName = 'dive_computer';
     String fileName;
     if (Platform.isWindows) {
-      fileName = 'lib$libName.dll';
+      fileName = 'libdivecomputer-0.dll';
     } else if (Platform.isAndroid) {
       fileName = 'lib$libName.so';
     } else if (Platform.isMacOS || Platform.isIOS) {

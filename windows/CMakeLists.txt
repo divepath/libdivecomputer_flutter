@@ -12,6 +12,6 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 # This list could contain prebuilt libraries, or libraries created by an 
 # external build triggered from this build file. 
 set(dive_computer_bundled_libraries 
-  ${CMAKE_CURRENT_SOURCE_DIR}/../native/lib/windows_x64/libdivecomputer-0.dll;${CMAKE_CURRENT_SOURCE_DIR}/../native/lib/windows_x64/libusb-1.0.dll;${CMAKE_CURRENT_SOURCE_DIR}/../native/lib/windows_x64/libhidapi-0.dll
+  ${CMAKE_CURRENT_SOURCE_DIR}/libraries/libdivecomputer-0.dll;${CMAKE_CURRENT_SOURCE_DIR}/libraries/libusb-1.0.dll;${CMAKE_CURRENT_SOURCE_DIR}/libraries/libhidapi-0.dll
   PARENT_SCOPE 
 ) 
