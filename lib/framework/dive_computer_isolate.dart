@@ -138,7 +138,11 @@ _spawnIsolate(SendPort sendPort) {
           DiveComputerFfi.divesCallback = (dives) {
             sendPort.send(dives);
           };
-          DiveComputerFfi.download(computer, transport, lastFingerprint);
+          DiveComputerFfi.download(
+            computer,
+            transport,
+            lastFingerprint: lastFingerprint,
+          );
           break;
         default:
           throw UnimplementedError('Message not implemented: $message');

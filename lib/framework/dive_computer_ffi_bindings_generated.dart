@@ -1731,6 +1731,46 @@ class DiveComputerFfiBindings {
   late final _dc_usbhid_open = _dc_usbhid_openPtr.asFunction<
       int Function(ffi.Pointer<ffi.Pointer<dc_iostream_t>>,
           ffi.Pointer<dc_context_t>, ffi.Pointer<dc_usbhid_device_t>)>();
+
+  /// Create a custom I/O stream.
+  ///
+  /// @param[out]  iostream   A location to store the custom I/O stream.
+  /// @param[in]   context    A valid context object.
+  /// @param[in]   callbacks  The callback functions to call.
+  /// @param[in]   userdata   User data to pass to the callback functions.
+  /// @returns #DC_STATUS_SUCCESS on success, or another #dc_status_t code
+  /// on failure.
+  int dc_custom_open(
+    ffi.Pointer<ffi.Pointer<dc_iostream_t>> iostream,
+    ffi.Pointer<dc_context_t> context,
+    int transport,
+    ffi.Pointer<dc_custom_cbs_t> callbacks,
+    ffi.Pointer<ffi.Void> userdata,
+  ) {
+    return _dc_custom_open(
+      iostream,
+      context,
+      transport,
+      callbacks,
+      userdata,
+    );
+  }
+
+  late final _dc_custom_openPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<ffi.Pointer<dc_iostream_t>>,
+              ffi.Pointer<dc_context_t>,
+              ffi.Int32,
+              ffi.Pointer<dc_custom_cbs_t>,
+              ffi.Pointer<ffi.Void>)>>('dc_custom_open');
+  late final _dc_custom_open = _dc_custom_openPtr.asFunction<
+      int Function(
+          ffi.Pointer<ffi.Pointer<dc_iostream_t>>,
+          ffi.Pointer<dc_context_t>,
+          int,
+          ffi.Pointer<dc_custom_cbs_t>,
+          ffi.Pointer<ffi.Void>)>();
 }
 
 abstract class dc_status_t {
@@ -1867,16 +1907,23 @@ abstract class dc_loglevel_t {
   static const int DC_LOGLEVEL_ALL = 5;
 }
 
-typedef dc_logfunc_t = ffi.Pointer<
-    ffi.NativeFunction<
-        ffi.Void Function(
-            ffi.Pointer<dc_context_t> context,
-            ffi.Int32 loglevel,
-            ffi.Pointer<ffi.Char> file,
-            ffi.UnsignedInt line,
-            ffi.Pointer<ffi.Char> function,
-            ffi.Pointer<ffi.Char> message,
-            ffi.Pointer<ffi.Void> userdata)>>;
+typedef dc_logfunc_t = ffi.Pointer<ffi.NativeFunction<dc_logfunc_tFunction>>;
+typedef dc_logfunc_tFunction = ffi.Void Function(
+    ffi.Pointer<dc_context_t> context,
+    ffi.Int32 loglevel,
+    ffi.Pointer<ffi.Char> file,
+    ffi.UnsignedInt line,
+    ffi.Pointer<ffi.Char> function,
+    ffi.Pointer<ffi.Char> message,
+    ffi.Pointer<ffi.Void> userdata);
+typedef Dartdc_logfunc_tFunction = void Function(
+    ffi.Pointer<dc_context_t> context,
+    int loglevel,
+    ffi.Pointer<ffi.Char> file,
+    int line,
+    ffi.Pointer<ffi.Char> function,
+    ffi.Pointer<ffi.Char> message,
+    ffi.Pointer<ffi.Void> userdata);
 
 final class dc_iterator_t extends ffi.Opaque {}
 
@@ -2076,6 +2123,7 @@ final class dc_datetime_t extends ffi.Struct {
 }
 
 typedef dc_ticks_t = ffi.LongLong;
+typedef Dartdc_ticks_t = int;
 
 abstract class dc_event_type_t {
   static const int DC_EVENT_WAITING = 1;
@@ -2121,20 +2169,38 @@ final class dc_event_vendor_t extends ffi.Struct {
   external int size;
 }
 
-typedef dc_cancel_callback_t = ffi.Pointer<
-    ffi.NativeFunction<ffi.Int Function(ffi.Pointer<ffi.Void> userdata)>>;
-typedef dc_event_callback_t = ffi.Pointer<
-    ffi.NativeFunction<
-        ffi.Void Function(ffi.Pointer<dc_device_t> device, ffi.Int32 event,
-            ffi.Pointer<ffi.Void> data, ffi.Pointer<ffi.Void> userdata)>>;
-typedef dc_dive_callback_t = ffi.Pointer<
-    ffi.NativeFunction<
-        ffi.Int Function(
-            ffi.Pointer<ffi.UnsignedChar> data,
-            ffi.UnsignedInt size,
-            ffi.Pointer<ffi.UnsignedChar> fingerprint,
-            ffi.UnsignedInt fsize,
-            ffi.Pointer<ffi.Void> userdata)>>;
+typedef dc_cancel_callback_t
+    = ffi.Pointer<ffi.NativeFunction<dc_cancel_callback_tFunction>>;
+typedef dc_cancel_callback_tFunction = ffi.Int Function(
+    ffi.Pointer<ffi.Void> userdata);
+typedef Dartdc_cancel_callback_tFunction = int Function(
+    ffi.Pointer<ffi.Void> userdata);
+typedef dc_event_callback_t
+    = ffi.Pointer<ffi.NativeFunction<dc_event_callback_tFunction>>;
+typedef dc_event_callback_tFunction = ffi.Void Function(
+    ffi.Pointer<dc_device_t> device,
+    ffi.Int32 event,
+    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Void> userdata);
+typedef Dartdc_event_callback_tFunction = void Function(
+    ffi.Pointer<dc_device_t> device,
+    int event,
+    ffi.Pointer<ffi.Void> data,
+    ffi.Pointer<ffi.Void> userdata);
+typedef dc_dive_callback_t
+    = ffi.Pointer<ffi.NativeFunction<dc_dive_callback_tFunction>>;
+typedef dc_dive_callback_tFunction = ffi.Int Function(
+    ffi.Pointer<ffi.UnsignedChar> data,
+    ffi.UnsignedInt size,
+    ffi.Pointer<ffi.UnsignedChar> fingerprint,
+    ffi.UnsignedInt fsize,
+    ffi.Pointer<ffi.Void> userdata);
+typedef Dartdc_dive_callback_tFunction = int Function(
+    ffi.Pointer<ffi.UnsignedChar> data,
+    int size,
+    ffi.Pointer<ffi.UnsignedChar> fingerprint,
+    int fsize,
+    ffi.Pointer<ffi.Void> userdata);
 
 final class dc_serial_device_t extends ffi.Opaque {}
 
@@ -2473,10 +2539,12 @@ final class UnnamedStruct6 extends ffi.Struct {
 
 final class dc_parser_t extends ffi.Opaque {}
 
-typedef dc_sample_callback_t = ffi.Pointer<
-    ffi.NativeFunction<
-        ffi.Void Function(ffi.Int32 type, ffi.Pointer<dc_sample_value_t> value,
-            ffi.Pointer<ffi.Void> userdata)>>;
+typedef dc_sample_callback_t
+    = ffi.Pointer<ffi.NativeFunction<dc_sample_callback_tFunction>>;
+typedef dc_sample_callback_tFunction = ffi.Void Function(ffi.Int32 type,
+    ffi.Pointer<dc_sample_value_t> value, ffi.Pointer<ffi.Void> userdata);
+typedef Dartdc_sample_callback_tFunction = void Function(int type,
+    ffi.Pointer<dc_sample_value_t> value, ffi.Pointer<ffi.Void> userdata);
 
 /// USB control transfer.
 final class dc_usb_control_t extends ffi.Struct {
@@ -2540,6 +2608,101 @@ final class dc_usbhid_desc_t extends ffi.Struct {
 
 final class dc_usbhid_device_t extends ffi.Opaque {}
 
+final class dc_custom_cbs_t extends ffi.Struct {
+  external ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<ffi.Void> userdata, ffi.Int timeout)>> set_timeout;
+
+  external ffi.Pointer<
+          ffi.NativeFunction<
+              ffi.Int32 Function(
+                  ffi.Pointer<ffi.Void> userdata, ffi.UnsignedInt value)>>
+      set_break;
+
+  external ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<ffi.Void> userdata, ffi.UnsignedInt value)>> set_dtr;
+
+  external ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<ffi.Void> userdata, ffi.UnsignedInt value)>> set_rts;
+
+  external ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Int32 Function(ffi.Pointer<ffi.Void> userdata,
+              ffi.Pointer<ffi.UnsignedInt> value)>> get_lines;
+
+  external ffi.Pointer<
+          ffi.NativeFunction<
+              ffi.Int32 Function(
+                  ffi.Pointer<ffi.Void> userdata, ffi.Pointer<ffi.Size> value)>>
+      get_available;
+
+  external ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<ffi.Void> userdata,
+              ffi.UnsignedInt baudrate,
+              ffi.UnsignedInt databits,
+              ffi.Int32 parity,
+              ffi.Int32 stopbits,
+              ffi.Int32 flowcontrol)>> configure;
+
+  external ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<ffi.Void> userdata, ffi.Int timeout)>> poll;
+
+  external ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<ffi.Void> userdata,
+              ffi.Pointer<ffi.Void> data,
+              ffi.Size size,
+              ffi.Pointer<ffi.Size> actual)>> read;
+
+  external ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<ffi.Void> userdata,
+              ffi.Pointer<ffi.Void> data,
+              ffi.Size size,
+              ffi.Pointer<ffi.Size> actual)>> write;
+
+  external ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<ffi.Void> userdata,
+              ffi.UnsignedInt request,
+              ffi.Pointer<ffi.Void> data,
+              ffi.Size size)>> ioctl;
+
+  external ffi.Pointer<
+          ffi
+          .NativeFunction<ffi.Int32 Function(ffi.Pointer<ffi.Void> userdata)>>
+      flush;
+
+  external ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<ffi.Void> userdata, ffi.Int32 direction)>> purge;
+
+  external ffi.Pointer<
+      ffi.NativeFunction<
+          ffi.Int32 Function(ffi.Pointer<ffi.Void> userdata,
+              ffi.UnsignedInt milliseconds)>> sleep;
+
+  external ffi.Pointer<
+          ffi
+          .NativeFunction<ffi.Int32 Function(ffi.Pointer<ffi.Void> userdata)>>
+      close;
+}
+
+const int __has_safe_buffers = 1;
+
 const int __DARWIN_ONLY_64_BIT_INO_T = 1;
 
 const int __DARWIN_ONLY_UNIX_CONFORMANCE = 1;
@@ -2577,6 +2740,8 @@ const int _DARWIN_FEATURE_ONLY_UNIX_CONFORMANCE = 1;
 const int _DARWIN_FEATURE_UNIX_CONFORMANCE = 3;
 
 const int __has_ptrcheck = 0;
+
+const int __has_bounds_safety_attributes = 0;
 
 const int __DARWIN_NULL = 0;
 

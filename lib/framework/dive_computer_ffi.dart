@@ -148,13 +148,17 @@ class DiveComputerFfi {
 
   static void download(
     Computer computer,
-    ComputerTransport transport, [
+    ComputerTransport transport, {
     String? lastFingerprint,
-  ]) {
+    ffi.Pointer<dc_iostream_t>? customIOStream,
+  }) {
     final computerDescriptor = _computerDescriptorCache[computer]!;
 
-    final ffi.Pointer<dc_iostream_t> iostream =
-        _interfaces.connect(transport, computerDescriptor);
+    final ffi.Pointer<dc_iostream_t> iostream = _interfaces.connect(
+      transport,
+      computerDescriptor,
+      customIOStream: customIOStream,
+    );
 
     final device = calloc<ffi.Pointer<dc_device_t>>();
     try {

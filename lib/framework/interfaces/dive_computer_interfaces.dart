@@ -18,7 +18,13 @@ class Interfaces {
   });
 
   ffi.Pointer<dc_iostream_t> connect(
-      ComputerTransport transport, ffi.Pointer<dc_descriptor_t> computer) {
+      ComputerTransport transport, ffi.Pointer<dc_descriptor_t> computer,
+      {ffi.Pointer<dc_iostream_t>? customIOStream}) {
+    // If a custom iostream is provided, use it directly
+    if (customIOStream != null) {
+      return customIOStream;
+    }
+
     switch (transport) {
       case ComputerTransport.serial:
         return _connectSerial(computer);
@@ -26,6 +32,12 @@ class Interfaces {
         return _connectUsb(computer);
       case ComputerTransport.usbhid:
         return _connectUsbHid(computer);
+      case ComputerTransport.ble:
+      case ComputerTransport.bluetooth:
+      case ComputerTransport.irda:
+        throw UnimplementedError(
+            'Transport ${transport.name} requires a custom iostream. '
+            'Please create a CustomIOStream and pass it via the customIOStream parameter.');
       default:
         throw UnimplementedError();
     }
