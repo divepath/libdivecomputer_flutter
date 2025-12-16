@@ -1,11 +1,8 @@
 import 'dart:ffi' as ffi;
 import 'package:ffi/ffi.dart';
-import 'package:logging/logging.dart' as logging;
 
 import 'dive_computer_ffi_bindings_generated.dart';
 import 'utils/utils.dart';
-
-final log = logging.Logger('CustomIOStream');
 
 /// Abstract class that allows implementing a custom iostream from Dart.
 ///
@@ -137,13 +134,11 @@ abstract class CustomIOStream {
 
   /// Gets the line signals.
   /// Return DC_STATUS_SUCCESS if successful and set [value].
-  int getLines(ffi.Pointer<ffi.UnsignedInt> value) =>
-      dc_status_t.DC_STATUS_UNSUPPORTED;
+  int getLines(ffi.Pointer<ffi.UnsignedInt> value) => dc_status_t.DC_STATUS_UNSUPPORTED;
 
   /// Gets the number of available bytes in the input buffer.
   /// Return DC_STATUS_SUCCESS if successful and set [value].
-  int getAvailable(ffi.Pointer<ffi.Size> value) =>
-      dc_status_t.DC_STATUS_UNSUPPORTED;
+  int getAvailable(ffi.Pointer<ffi.Size> value) => dc_status_t.DC_STATUS_UNSUPPORTED;
 
   /// Configures the line settings.
   /// Return DC_STATUS_SUCCESS if successful.
@@ -180,8 +175,7 @@ abstract class CustomIOStream {
 
   /// Performs an ioctl operation.
   /// Return DC_STATUS_SUCCESS if successful.
-  int ioctl(int request, ffi.Pointer<ffi.Void> data, int size) =>
-      dc_status_t.DC_STATUS_UNSUPPORTED;
+  int ioctl(int request, ffi.Pointer<ffi.Void> data, int size) => dc_status_t.DC_STATUS_UNSUPPORTED;
 
   /// Flushes the output buffer.
   /// Return DC_STATUS_SUCCESS if successful.
@@ -263,8 +257,7 @@ abstract class CustomIOStream {
     }
   }
 
-  static int _getLinesCallback(
-      ffi.Pointer<ffi.Void> userdata, ffi.Pointer<ffi.UnsignedInt> value) {
+  static int _getLinesCallback(ffi.Pointer<ffi.Void> userdata, ffi.Pointer<ffi.UnsignedInt> value) {
     try {
       final instance = _getInstance(userdata);
       if (instance == null) return dc_status_t.DC_STATUS_UNSUPPORTED;
@@ -275,8 +268,7 @@ abstract class CustomIOStream {
     }
   }
 
-  static int _getAvailableCallback(
-      ffi.Pointer<ffi.Void> userdata, ffi.Pointer<ffi.Size> value) {
+  static int _getAvailableCallback(ffi.Pointer<ffi.Void> userdata, ffi.Pointer<ffi.Size> value) {
     try {
       final instance = _getInstance(userdata);
       if (instance == null) return dc_status_t.DC_STATUS_UNSUPPORTED;

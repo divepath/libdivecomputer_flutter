@@ -15,6 +15,7 @@ libdivecomputer_HEADERS = 	\
 	usb.h \
 	usbhid.h \
 	custom.h \
+	buffered.h \
 	device.h \
 	parser.h \
 	datetime.h \

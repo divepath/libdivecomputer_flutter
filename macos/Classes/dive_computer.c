@@ -1,5 +1,7 @@
 #include "config.h"
+#include "../../src/libdivecomputer/src/buffered.c"
 #include "../../src/libdivecomputer/src/context.c"
+#include "../../src/libdivecomputer/src/custom.c"
 #include "../../src/libdivecomputer/src/device.c"
 #include "../../src/libdivecomputer/src/iterator.c"
 #include "../../src/libdivecomputer/src/buffer.c"

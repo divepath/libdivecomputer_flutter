@@ -16,10 +16,8 @@ add_compile_definitions(HAVE_DLFCN_H=1)
 add_compile_definitions(HAVE_GETOPT_H=1)
 add_compile_definitions(HAVE_GETOPT_LONG=1)
 add_compile_definitions(HAVE_GMTIME_R=1)
-#add_compile_definitions(HAVE_HIDAPI=1)
 add_compile_definitions(HAVE_INTTYPES_H=1)
 add_compile_definitions(HAVE_IOKIT_SERIAL_IOSS_H=1)
-#add_compile_definitions(HAVE_LIBUSB=1)
 add_compile_definitions(HAVE_LOCALTIME_R=1)
 add_compile_definitions(HAVE_MACH_ABSOLUTE_TIME=1)
 add_compile_definitions(HAVE_MACH_MACH_TIME_H=1)
@@ -49,18 +47,13 @@ add_compile_definitions(PACKAGE_VERSION="0.9.0-devel")
 add_compile_definitions(STDC_HEADERS=1)
 add_compile_definitions(VERSION="0.9.0-devel")
 
-# add_compile_definitions(__APPLE__=1)
-# add_compile_definitions(HAVE_HIDAPI=1)
-# add_compile_definitions(HAVE_PTHREAD_H=1)
-
 include_directories(
   "libdivecomputer/include"
-#  "hidapi/hidapi"
-#  "libusb/libusb"
 )
 
 add_library(libdivecomputer SHARED
   "libdivecomputer/src/context.c"
+  "libdivecomputer/src/custom.c"
   "libdivecomputer/src/device.c"
   "libdivecomputer/src/iterator.c"
   "libdivecomputer/src/buffer.c"
@@ -79,8 +72,6 @@ add_library(libdivecomputer SHARED
   "libdivecomputer/src/timer.c"
   "libdivecomputer/src/parser.c"
   "libdivecomputer/src/serial_posix.c"
-  #"libdivecomputer/src/usb.c"
-  #"libdivecomputer/src/usbhid.c"
 
   "libdivecomputer/src/atomics_cobalt.c"
   "libdivecomputer/src/atomics_cobalt_parser.c"
@@ -167,9 +158,6 @@ add_library(libdivecomputer SHARED
   "libdivecomputer/src/uwatec_smart_parser.c"
   "libdivecomputer/src/zeagle_n2ition3.c"
 )
-
-#target_link_libraries(libdivecomputer PRIVATE hidapi::hidapi)
-#target_link_libraries(libdivecomputer PRIVATE libusb)
 
 set_target_properties(libdivecomputer PROPERTIES
   PUBLIC_HEADER dive_computer.h

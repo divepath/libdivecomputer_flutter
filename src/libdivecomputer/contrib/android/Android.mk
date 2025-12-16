@@ -18,6 +18,7 @@ LOCAL_SRC_FILES := \
 	src/cochran_commander_parser.c \
 	src/common.c \
 	src/context.c \
+	src/custom.c \
 	src/cressi_edy.c \
 	src/cressi_edy_parser.c \
 	src/cressi_goa.c \
@@ -106,8 +107,6 @@ LOCAL_SRC_FILES := \
 	src/tecdiving_divecomputereu.c \
 	src/tecdiving_divecomputereu_parser.c \
 	src/timer.c \
-	src/usb.c \
-	src/usbhid.c \
 	src/uwatec_aladin.c \
 	src/uwatec_memomouse.c \
 	src/uwatec_memomouse_parser.c \

@@ -1771,6 +1771,141 @@ class DiveComputerFfiBindings {
           int,
           ffi.Pointer<dc_custom_cbs_t>,
           ffi.Pointer<ffi.Void>)>();
+
+  /// Create a buffered I/O stream.
+  ///
+  /// The buffered iostream handles reads from an internal buffer that can be
+  /// filled from an external source (e.g., BLE notifications). Reads will block
+  /// until data is available or timeout occurs.
+  ///
+  /// Writes are passed through to a callback function.
+  ///
+  /// @param[out]  iostream        A location to store the buffered I/O stream.
+  /// @param[in]   context         A valid context object.
+  /// @param[in]   transport       The transport type.
+  /// @param[in]   write_callback  Callback for write operations.
+  /// @param[in]   close_callback  Callback for close operations (can be NULL).
+  /// @returns #DC_STATUS_SUCCESS on success, or another #dc_status_t code on failure.
+  int dc_buffered_open(
+    ffi.Pointer<ffi.Pointer<dc_iostream_t>> iostream,
+    ffi.Pointer<dc_context_t> context,
+    int transport,
+    dc_buffered_write_callback_t write_callback,
+    dc_buffered_close_callback_t close_callback,
+  ) {
+    return _dc_buffered_open(
+      iostream,
+      context,
+      transport,
+      write_callback,
+      close_callback,
+    );
+  }
+
+  late final _dc_buffered_openPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int32 Function(
+              ffi.Pointer<ffi.Pointer<dc_iostream_t>>,
+              ffi.Pointer<dc_context_t>,
+              ffi.Int32,
+              dc_buffered_write_callback_t,
+              dc_buffered_close_callback_t)>>('dc_buffered_open');
+  late final _dc_buffered_open = _dc_buffered_openPtr.asFunction<
+      int Function(
+          ffi.Pointer<ffi.Pointer<dc_iostream_t>>,
+          ffi.Pointer<dc_context_t>,
+          int,
+          dc_buffered_write_callback_t,
+          dc_buffered_close_callback_t)>();
+
+  /// Get the buffered iostream handle from the generic iostream.
+  ///
+  /// @param[in]   iostream   The iostream created by dc_buffered_open.
+  /// @returns The buffered iostream handle, or NULL if not a buffered iostream.
+  ffi.Pointer<dc_buffered_t> dc_buffered_get_handle(
+    ffi.Pointer<dc_iostream_t> iostream,
+  ) {
+    return _dc_buffered_get_handle(
+      iostream,
+    );
+  }
+
+  late final _dc_buffered_get_handlePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Pointer<dc_buffered_t> Function(
+              ffi.Pointer<dc_iostream_t>)>>('dc_buffered_get_handle');
+  late final _dc_buffered_get_handle = _dc_buffered_get_handlePtr.asFunction<
+      ffi.Pointer<dc_buffered_t> Function(ffi.Pointer<dc_iostream_t>)>();
+
+  /// Push data into the read buffer.
+  ///
+  /// Call this function when data is received from the external source
+  /// (e.g., BLE notification). This will wake up any blocking read operation.
+  ///
+  /// Thread-safe: Can be called from any thread.
+  ///
+  /// @param[in]   buffered   The buffered iostream handle.
+  /// @param[in]   data       The data to push into the buffer.
+  /// @param[in]   size       The size of the data.
+  /// @returns #DC_STATUS_SUCCESS on success, or another #dc_status_t code on failure.
+  int dc_buffered_push(
+    ffi.Pointer<dc_buffered_t> buffered,
+    ffi.Pointer<ffi.UnsignedChar> data,
+    int size,
+  ) {
+    return _dc_buffered_push(
+      buffered,
+      data,
+      size,
+    );
+  }
+
+  late final _dc_buffered_pushPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int32 Function(ffi.Pointer<dc_buffered_t>,
+              ffi.Pointer<ffi.UnsignedChar>, ffi.Size)>>('dc_buffered_push');
+  late final _dc_buffered_push = _dc_buffered_pushPtr.asFunction<
+      int Function(
+          ffi.Pointer<dc_buffered_t>, ffi.Pointer<ffi.UnsignedChar>, int)>();
+
+  /// Get the number of bytes available in the read buffer.
+  ///
+  /// Thread-safe: Can be called from any thread.
+  ///
+  /// @param[in]   buffered   The buffered iostream handle.
+  /// @returns The number of bytes available.
+  int dc_buffered_get_available(
+    ffi.Pointer<dc_buffered_t> buffered,
+  ) {
+    return _dc_buffered_get_available(
+      buffered,
+    );
+  }
+
+  late final _dc_buffered_get_availablePtr = _lookup<
+          ffi.NativeFunction<ffi.Size Function(ffi.Pointer<dc_buffered_t>)>>(
+      'dc_buffered_get_available');
+  late final _dc_buffered_get_available = _dc_buffered_get_availablePtr
+      .asFunction<int Function(ffi.Pointer<dc_buffered_t>)>();
+
+  /// Clear the read buffer.
+  ///
+  /// Thread-safe: Can be called from any thread.
+  ///
+  /// @param[in]   buffered   The buffered iostream handle.
+  void dc_buffered_clear(
+    ffi.Pointer<dc_buffered_t> buffered,
+  ) {
+    return _dc_buffered_clear(
+      buffered,
+    );
+  }
+
+  late final _dc_buffered_clearPtr = _lookup<
+          ffi.NativeFunction<ffi.Void Function(ffi.Pointer<dc_buffered_t>)>>(
+      'dc_buffered_clear');
+  late final _dc_buffered_clear = _dc_buffered_clearPtr
+      .asFunction<void Function(ffi.Pointer<dc_buffered_t>)>();
 }
 
 abstract class dc_status_t {
@@ -2700,6 +2835,26 @@ final class dc_custom_cbs_t extends ffi.Struct {
           .NativeFunction<ffi.Int32 Function(ffi.Pointer<ffi.Void> userdata)>>
       close;
 }
+
+final class dc_buffered_t extends ffi.Opaque {}
+
+/// Callback for write operations.
+/// Called when libdivecomputer wants to write data (e.g., send via BLE).
+typedef dc_buffered_write_callback_t
+    = ffi.Pointer<ffi.NativeFunction<dc_buffered_write_callback_tFunction>>;
+typedef dc_buffered_write_callback_tFunction = ffi.Int32 Function(
+    ffi.Pointer<ffi.UnsignedChar> data,
+    ffi.Size size,
+    ffi.Pointer<ffi.Size> actual);
+typedef Dartdc_buffered_write_callback_tFunction = int Function(
+    ffi.Pointer<ffi.UnsignedChar> data, int size, ffi.Pointer<ffi.Size> actual);
+
+/// Callback for close operations.
+/// Called when the iostream is being closed.
+typedef dc_buffered_close_callback_t
+    = ffi.Pointer<ffi.NativeFunction<dc_buffered_close_callback_tFunction>>;
+typedef dc_buffered_close_callback_tFunction = ffi.Int32 Function();
+typedef Dartdc_buffered_close_callback_tFunction = int Function();
 
 const int __has_safe_buffers = 1;
 

@@ -86,6 +86,12 @@ dc_usbhid_open
 
 dc_custom_open
 
+dc_buffered_open
+dc_buffered_get_handle
+dc_buffered_push
+dc_buffered_get_available
+dc_buffered_clear
+
 dc_parser_new
 dc_parser_new2
 dc_parser_set_clock

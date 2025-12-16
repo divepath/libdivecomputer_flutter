@@ -57,14 +57,12 @@ class DiveComputerFfi {
   static late final ffi.DynamicLibrary _library;
   static late DiveComputerFfiBindings _bindings;
 
-  static final _computerDescriptorCache =
-      <Computer, ffi.Pointer<dc_descriptor_t>>{};
+  static final _computerDescriptorCache = <Computer, ffi.Pointer<dc_descriptor_t>>{};
   static final _divesCache = <Dive>[];
 
   static Function(List<Dive>)? divesCallback;
 
-  static final _interfaces =
-      Interfaces(bindings: _bindings, context: context, log: log);
+  static final _interfaces = Interfaces(bindings: _bindings, context: context, log: log);
 
   static void enableDebugLogging([logging.Level level = logging.Level.INFO]) {
     log.level = level;
@@ -119,14 +117,10 @@ class DiveComputerFfi {
 
     int result;
     final desc = calloc<ffi.Pointer<dc_descriptor_t>>();
-    while ((result = _bindings.dc_iterator_next(iterator.value, desc.cast())) ==
-        dc_status_t.DC_STATUS_SUCCESS) {
-      final ffi.Pointer<Utf8> vendor =
-          _bindings.dc_descriptor_get_vendor(desc.value).cast();
-      final ffi.Pointer<Utf8> product =
-          _bindings.dc_descriptor_get_product(desc.value).cast();
-      final transports = parseTransportsBitmask(
-          _bindings.dc_descriptor_get_transports(desc.value));
+    while ((result = _bindings.dc_iterator_next(iterator.value, desc.cast())) == dc_status_t.DC_STATUS_SUCCESS) {
+      final ffi.Pointer<Utf8> vendor = _bindings.dc_descriptor_get_vendor(desc.value).cast();
+      final ffi.Pointer<Utf8> product = _bindings.dc_descriptor_get_product(desc.value).cast();
+      final transports = parseTransportsBitmask(_bindings.dc_descriptor_get_transports(desc.value));
 
       final computer = Computer(
         vendor.toDartString(),
@@ -146,6 +140,15 @@ class DiveComputerFfi {
     return computers;
   }
 
+  static int _writeCallback(ffi.Pointer<ffi.UnsignedChar> data, int size, ffi.Pointer<ffi.Size> actual) {
+    print("write $size bytes");
+    return dc_status_t.DC_STATUS_SUCCESS;
+  }
+
+  static int _closeCallback() {
+    return dc_status_t.DC_STATUS_SUCCESS;
+  }
+
   static void download(
     Computer computer,
     ComputerTransport transport, {
@@ -153,29 +156,29 @@ class DiveComputerFfi {
     ffi.Pointer<dc_iostream_t>? customIOStream,
   }) {
     final computerDescriptor = _computerDescriptorCache[computer]!;
-
-    final ffi.Pointer<dc_iostream_t> iostream = _interfaces.connect(
-      transport,
-      computerDescriptor,
-      customIOStream: customIOStream,
-    );
-
+    final iostream = calloc<ffi.Pointer<dc_iostream_t>>();
     final device = calloc<ffi.Pointer<dc_device_t>>();
+
     try {
+      handleResult(
+        _bindings.dc_buffered_open(
+            iostream, context.value, transport.index, ffi.Pointer.fromFunction(_writeCallback, 0), ffi.Pointer.fromFunction(_closeCallback, 0)),
+        'buffer open',
+      );
+
       handleResult(
         _bindings.dc_device_open(
           device,
           context.value,
           computerDescriptor,
-          iostream,
+          iostream.value,
         ),
         'device open',
       );
 
       final customdata = calloc<_DiveCallbackUserdata>();
       customdata.ref.device = device.value;
-      customdata.ref.lastFingerprint =
-          lastFingerprint?.toNativeUtf8() ?? ffi.nullptr;
+      customdata.ref.lastFingerprint = lastFingerprint?.toNativeUtf8() ?? ffi.nullptr;
 
       _divesCache.clear();
       handleResult(
@@ -198,7 +201,7 @@ class DiveComputerFfi {
       );
     } finally {
       handleResult(
-        _bindings.dc_iostream_close(iostream),
+        _bindings.dc_iostream_close(iostream.value),
         'iostream close',
       );
     }
@@ -212,8 +215,7 @@ class DiveComputerFfi {
     int fsize,
     ffi.Pointer<ffi.Void> userdata,
   ) {
-    final _DiveCallbackUserdata customdata =
-        userdata.cast<_DiveCallbackUserdata>().ref;
+    final _DiveCallbackUserdata customdata = userdata.cast<_DiveCallbackUserdata>().ref;
 
     _parseDive(data, size, fingerprint, fsize, customdata.device.cast());
 
@@ -237,8 +239,7 @@ class DiveComputerFfi {
     int fsize,
     ffi.Pointer<dc_device_t> device,
   ) {
-    final fingerprintHash =
-        _buildFingerprintHash(fingerprint, fsize).toNativeUtf8();
+    final fingerprintHash = _buildFingerprintHash(fingerprint, fsize).toNativeUtf8();
     log.fine('Parsing Dive #${fingerprintHash.toDartString()}');
 
     final parser = malloc<ffi.Pointer<dc_parser_t>>();
@@ -250,47 +251,34 @@ class DiveComputerFfi {
       size,
     ));
 
-    final diveTime =
-        _parseField<int>(dc_field_type_t.DC_FIELD_DIVETIME, parser.value);
-    final maxDepth =
-        _parseField<double>(dc_field_type_t.DC_FIELD_MAXDEPTH, parser.value);
-    final avgDepth =
-        _parseField<double>(dc_field_type_t.DC_FIELD_AVGDEPTH, parser.value);
-    final atmospheric =
-        _parseField<double>(dc_field_type_t.DC_FIELD_ATMOSPHERIC, parser.value);
-    final temperatureSurface = _parseField<double>(
-        dc_field_type_t.DC_FIELD_TEMPERATURE_SURFACE, parser.value);
-    final temperatureMinumum = _parseField<double>(
-        dc_field_type_t.DC_FIELD_TEMPERATURE_MINIMUM, parser.value);
-    final temperatureMaximum = _parseField<double>(
-        dc_field_type_t.DC_FIELD_TEMPERATURE_MAXIMUM, parser.value);
-    final diveMode =
-        _parseField<int>(dc_field_type_t.DC_FIELD_DIVEMODE, parser.value);
+    final diveTime = _parseField<int>(dc_field_type_t.DC_FIELD_DIVETIME, parser.value);
+    final maxDepth = _parseField<double>(dc_field_type_t.DC_FIELD_MAXDEPTH, parser.value);
+    final avgDepth = _parseField<double>(dc_field_type_t.DC_FIELD_AVGDEPTH, parser.value);
+    final atmospheric = _parseField<double>(dc_field_type_t.DC_FIELD_ATMOSPHERIC, parser.value);
+    final temperatureSurface = _parseField<double>(dc_field_type_t.DC_FIELD_TEMPERATURE_SURFACE, parser.value);
+    final temperatureMinumum = _parseField<double>(dc_field_type_t.DC_FIELD_TEMPERATURE_MINIMUM, parser.value);
+    final temperatureMaximum = _parseField<double>(dc_field_type_t.DC_FIELD_TEMPERATURE_MAXIMUM, parser.value);
+    final diveMode = _parseField<int>(dc_field_type_t.DC_FIELD_DIVEMODE, parser.value);
 
-    final salinity =
-        _parseField<Salinity>(dc_field_type_t.DC_FIELD_SALINITY, parser.value);
+    final salinity = _parseField<Salinity>(dc_field_type_t.DC_FIELD_SALINITY, parser.value);
 
-    final gasmixCount =
-        _parseField<int>(dc_field_type_t.DC_FIELD_GASMIX_COUNT, parser.value);
+    final gasmixCount = _parseField<int>(dc_field_type_t.DC_FIELD_GASMIX_COUNT, parser.value);
     List<Gasmix>? gasmixes;
     if (gasmixCount != null) {
       gasmixes = [];
       for (var i = 0; i < gasmixCount; i++) {
-        final gasmix = _parseField<Gasmix>(
-            dc_field_type_t.DC_FIELD_GASMIX, parser.value, i);
+        final gasmix = _parseField<Gasmix>(dc_field_type_t.DC_FIELD_GASMIX, parser.value, i);
         if (gasmix == null) continue;
         gasmixes.add(gasmix);
       }
     }
 
-    final tankCount =
-        _parseField<int>(dc_field_type_t.DC_FIELD_TANK_COUNT, parser.value);
+    final tankCount = _parseField<int>(dc_field_type_t.DC_FIELD_TANK_COUNT, parser.value);
     List<Tank>? tanks;
     if (tankCount != null) {
       tanks = [];
       for (var i = 0; i < tankCount; i++) {
-        final tank =
-            _parseField<Tank>(dc_field_type_t.DC_FIELD_TANK, parser.value, i);
+        final tank = _parseField<Tank>(dc_field_type_t.DC_FIELD_TANK, parser.value, i);
         if (tank == null) continue;
         tanks.add(tank);
       }
@@ -474,9 +462,7 @@ class DiveComputerFfi {
         final pressure = pressureCallback.ref.value;
         log.finest('Pressure: $pressure @ $fingerprintHash');
         _samplesCache[_currentSampleTime]!.pressure ??= [];
-        _samplesCache[_currentSampleTime]!
-            .pressure!
-            .add(Pressure(pressureCallback.ref.tank, pressure));
+        _samplesCache[_currentSampleTime]!.pressure!.add(Pressure(pressureCallback.ref.tank, pressure));
         break;
       case dc_sample_type_t.DC_SAMPLE_EVENT:
         final eventCallback = value.cast<_SampleCallbackEvent>();
@@ -528,8 +514,7 @@ class DiveComputerFfi {
     log.fine('[native] ${message.cast<Utf8>().toDartString()}');
   }
 
-  static String _buildFingerprintHash(
-      ffi.Pointer<ffi.UnsignedChar> fingerprint, int fsize) {
+  static String _buildFingerprintHash(ffi.Pointer<ffi.UnsignedChar> fingerprint, int fsize) {
     final ascii = '0123456789ABCDEF'.codeUnits;
 
     var result = StringBuffer();

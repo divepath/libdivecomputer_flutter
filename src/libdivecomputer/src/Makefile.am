@@ -88,7 +88,8 @@ libdivecomputer_la_SOURCES = \
 	usb.c \
 	usbhid.c \
 	bluetooth.c \
-	custom.c
+	custom.c \
+	buffered.c
 
 if OS_WIN32
 libdivecomputer_la_SOURCES += serial_win32.c
